@@ -21,7 +21,15 @@ const hoyPicoPlaca = (req, res) => {
     return res.status(400).json({ error: "Se requiere la ciudad" });
   }
 
-  const fechaHoy = new Date().toISOString().split("T")[0];
+  const hoy = new Date();
+  const yyyy = hoy.getFullYear();
+  const mm = String(hoy.getMonth() + 1).padStart(2, "0"); // Meses son 0-indexed
+  const dd = String(hoy.getDate()).padStart(2, "0");
+
+  const fechaHoy = `${yyyy}-${mm}-${dd}`;
+
+
+  console.log(fechaHoy)
   const resultado = obtenerRestriccion(ciudad, fechaHoy, false);
 
   res.json(resultado);

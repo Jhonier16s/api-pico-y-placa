@@ -1,32 +1,28 @@
 const reglas = {
-  Pasto: {
-    0: [0, 1],
-    1: [2, 3],
-    2: [4, 5],
-    3: [6, 7],
-    4: [8, 9],
-  },
+  Pasto: [
+    [0, 1], // Lunes
+    [2, 3], // Martes
+    [4, 5], // Miércoles
+    [6, 7], // Jueves
+    [8, 9], // Viernes
+  ],
   Popayan: {
-    0: [0, 1],
-    1: [2, 3],
-    2: [4, 5],
-    3: [6, 7],
-    4: [8, 9],
+    Lunes: [1, 2],
+    Martes: [3, 4],
+    Miércoles: [5, 6],
+    Jueves: [7, 8],
+    Viernes: [9, 0],
   },
 };
 
 const obtenerRestriccion = (ciudad, fecha, explicacion) => {
-  const fechaConsulta = new Date(fecha);
-  const diaSemana = fechaConsulta.getUTCDay();
-  const diasSemana = [
-    "Domingo",
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-  ];
+  const partes = fecha.split("-");
+  const fechaConsulta = new Date(partes[0], partes[1] - 1, partes[2]);
+
+
+
+  const diaSemana = fechaConsulta.getDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
   if (diaSemana === 0 || diaSemana === 6) {
     return {
@@ -39,45 +35,53 @@ const obtenerRestriccion = (ciudad, fecha, explicacion) => {
     };
   }
 
-  let semanasCount = calcularSemanas(fechaConsulta);
-
+  let digitos;
   if (ciudad === "Popayan") {
-    const mes = fechaConsulta.getMonth() + 1;
-    const semestreOffset = mes >= 7 ? 1 : 0;
-    semanasCount += semestreOffset;
+    digitos = reglas.Popayan[diasSemana[diaSemana]];
+  } else if (ciudad === "Pasto") {
+    // Calcular semanas desde el inicio sin contar fines de semana
+    const semanasDesdeInicio = calcularSemanas(fechaConsulta);
+   
+
+    // **Corrección**: Mover en orden inverso el ciclo
+    const avanceSemanal = (semanasDesdeInicio * 2) % 5;
+    
+    // Índice del día en la semana (Lunes = 0, ..., Viernes = 4)
+    const indiceDia = diaSemana - 1;
+
+
+    // **Corrección**: Restamos el avance en vez de sumarlo
+    const indiceFinal = (indiceDia - avanceSemanal + 5) % 5;
+    
+
+    digitos = reglas.Pasto[indiceFinal];
   }
 
-  const digitos = reglas[ciudad][semanasCount % 5];
+ 
 
-  const mensajeBase = `📢 Pico y placa para ${
-    !explicacion ? "hoy" : fecha
-  } en ${ciudad}: ${digitos.join(" y ")}`;
+  const mensajeBase = `📢 Pico y placa para ${!explicacion ? "hoy" : fecha} en ${ciudad}: ${digitos.join(" y ")}`;
 
-  const respuesta = {
+  return {
     mensaje: mensajeBase,
     fecha,
     ciudad,
-    "dia de la semana": diasSemana[diaSemana],
-    "digitos Restringidos": digitos.join(" y "),
+    diaSemana: diasSemana[diaSemana],
+    digitosRestringidos: digitos.join(" y "),
+    ...(explicacion && { explicacion: `Los vehículos con placas terminadas en ${digitos.join(" y ")} no pueden circular.` }),
   };
-
-  if (explicacion) {
-    respuesta.explicacion = `Los vehículos con placas terminadas en ${digitos.join(
-      " y "
-    )} no pueden circular.`;
-  }
-
-  return respuesta;
 };
 
-function calcularSemanas(desdeFecha) {
-  const fechaInicio = new Date("2024-12-31");
-  const fechaFin = new Date(desdeFecha);
+// Nueva función para contar SEMANAS sin incluir fines de semana
+function calcularSemanas(fecha) {
+  const fechaInicio = new Date("2024-12-30"); // Lunes inicial
+  let diferenciaDias = Math.floor((fecha - fechaInicio) / (1000 * 60 * 60 * 24));
 
-  const diferenciaMs = fechaFin - fechaInicio;
-  const semanas = Math.floor(diferenciaMs / (1000 * 60 * 60 * 24 * 7));
 
-  return semanas;
+  // Contar solo días hábiles (Lunes a Viernes)
+  let semanasHabiles = Math.floor(diferenciaDias / 7) * 5 + Math.min(diferenciaDias % 7, 5);
+ 
+
+  return Math.floor(semanasHabiles / 5);
 }
 
 module.exports = { obtenerRestriccion };

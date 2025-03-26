@@ -5,19 +5,19 @@ describe("Pico y Placa API", () => {
   test("✔️ Dígitos retornados para una fecha en Pasto sean correctos", async () => {
     const response = await request(app).post("/pico-placa/consulta").send({
       ciudad: "Pasto",
-      fecha: "2025-03-28",
+      fecha: "2025-03-25",
     });
     expect(response.status).toBe(200);
-    //expect(response.body.digitosRestringidos).toEqual([4, 5]); // Ajusta según la lógica real
+    expect(response.body.digitosRestringidos).toBe('4 y 5');
   });
 
-  /*  test("✔️ Dígitos retornados para una fecha en Popayán sean correctos", async () => {
+   test("✔️ Dígitos retornados para una fecha en Popayán sean correctos", async () => {
     const response = await request(app).post("/pico-placa/consulta").send({
-      ciudad: "Popayán",
-      fecha: "2025-03-29",
+      ciudad: "Popayan",
+      fecha: "2025-03-25",
     });
     expect(response.status).toBe(200);
-    expect(response.body.digitosRestringidos).toEqual([6, 7]); // Ajusta según la lógica real
+    expect(response.body.digitosRestringidos).toBe('3 y 4');
   });
 
   test("✔️ El servicio /pico-placa/hoy funciona correctamente con la fecha actual", async () => {
@@ -46,5 +46,5 @@ describe("Pico y Placa API", () => {
       fecha: "2025-03-31", // Inicio del nuevo ciclo
     });
     expect(response1.body.digitosRestringidos).not.toEqual(response2.body.digitosRestringidos);
-  }); */
+  });
 });
